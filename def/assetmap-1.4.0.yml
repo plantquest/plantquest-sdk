@@ -1,0 +1,1231 @@
+openapi: 3.0.0
+info:
+  description: |
+    QPlantQuest AssetMap API Documentation
+
+    Data Model
+    * `Extent-*--parent_id--->Extent` # Child Extents
+    * `Surface-*--extent_id--->Extent` # Surfaces of the Extent
+    * `Map-*--surface_id--->Surface` # Maps of the Surface
+    * `Asset-*--room_id--->Room` # Asset in Room
+    * `Room-*--building_id--->Building` # Room in Building
+    * `Room-*--surface_id--->Surface` # Room on Surface
+    * `Building-*--extent_id--->Extent` # Building in primary Extent
+
+    The PlantQuest mapping exercise will define the Extent, Surface,
+    and Map entities in the provisioned project within the given
+    plant. These endpoints are provided for completeness but are not
+    normally used between physical plant reconfigurations. The project
+    is also separated into named stages to support client CI/CD.
+    
+    The primary Extent defines the 3D volume of the plant, which is
+    divided into a stack of 2D surfaces. Each Surface is composed of
+    one or more Maps.
+
+    Extents may have child Extents with pre-defined local
+    transformations (such as rotation and size). The API will
+    automatically convert child coordinates to parent coordinates.
+    
+    A Room is a polygon in the coordinate system of its primary
+    Extent. The centroid is taken as the position of the room.  The
+    centroid of a Building on a Surface is the centroid of the Room
+    centroids in the Building on that Surface.
+
+    The centroids of Rooms and Buildings are converted to the
+    coordinates of child Extents to determine if they are in those
+    child Extents. These child Extents and their corresponding
+    Surfaces can then be queried for the Rooms and Buildings they
+    contain.
+
+    Some entities have derived reference id fields that will be set
+    automatically. For example, the surface_id of an Asset is derived
+    from its assigned Room.
+    
+    All entities support update merging. Unless a property has an
+    explicit `null` value, the existing value in the system is
+    preserved. This allows for operations to focus only on the
+    relevant properties. For example, to move an asset, only the
+    `room_id` is strictly necessary (Assets are assigned the room
+    centroid coordinates by default).
+
+    Custom data may be stored on any entity under the `custom`
+    property. By prior arrangement, clients can define additional top
+    level custom properties, the names of which must be prefixed with
+    an `x`.
+    
+  version: 1.4.0
+  title: PlantQuest AssetMap
+  termsOfService: 'http://www.plantquest.com/api-terms'
+  contact:
+    email: support@plantquest.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+
+servers:
+  - url: 'https://assetmap.pfizer.plantquest.io/api/v1/rest'
+
+security:
+  - api_key: []
+    
+paths:
+
+  
+# START: asset
+  
+  /{projectid}/{plantid}/{stage}/asset:
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+
+          
+    # path-part: asset
+    post:
+      tags:
+        - Asset # tag
+      summary: Add a new asset
+      operationId: add_asset
+
+      responses:
+        '200':
+          $ref: '#/components/responses/asset'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/asset'
+
+    # path-part: asset
+    put:
+      tags:
+        - Asset # tag
+      summary: Update an existing asset
+      operationId: update_asset
+      responses:
+        '200':
+          $ref: '#/components/responses/asset'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/asset'
+
+    # path-part: asset
+    get:
+      tags:
+        - Asset # tag
+      summary: List assets
+      operationId: list_asset
+      parameters:
+        - $ref: '#/components/parameters/filter'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/assetlist'
+        '400': 
+          $ref: '#/components/responses/invalid'
+          
+  '/{projectid}/{plantid}/{stage}/asset/{entityid}':
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+        
+    # path-part: asset      
+    get:
+      tags:
+        - Asset # tag
+      summary: Find asset by ID
+      description: Returns a single Asset
+      operationId: get_asset_by_id
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/asset'
+        '400': 
+          $ref: '#/components/responses/invalid'
+           
+    # path-part: asset         
+    delete:
+      tags:
+        - Asset # tag
+      summary: Delete asset
+      operationId: delete_asset
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/asset'
+        '400': 
+          $ref: '#/components/responses/invalid'
+
+# END: asset
+
+
+# START: room
+          
+  /{projectid}/{plantid}/{stage}/room:
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+
+    # path-part: room
+    post:
+      tags:
+        - Room # tag
+      summary: Add a new room
+      operationId: add_room
+
+      responses:
+        '200':
+          $ref: '#/components/responses/room'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/room'
+
+    # path-part: room
+    put:
+      tags:
+        - Room # tag
+      summary: Update an existing room
+      operationId: update_room
+      responses:
+        '200':
+          $ref: '#/components/responses/room'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/room'
+
+    # path-part: room
+    get:
+      tags:
+        - Room # tag
+      summary: List rooms
+      operationId: list_room
+      parameters:
+        - $ref: '#/components/parameters/filter'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/roomlist'
+        '400': 
+          $ref: '#/components/responses/invalid'
+          
+  '/{projectid}/{plantid}/{stage}/room/{entityid}':
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+        
+    # path-part: room      
+    get:
+      tags:
+        - Room # tag
+      summary: Find room by ID
+      description: Returns a single Room
+      operationId: get_room_by_id
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/room'
+        '400': 
+          $ref: '#/components/responses/invalid'
+           
+    # path-part: room         
+    delete:
+      tags:
+        - Room # tag
+      summary: Delete room
+      operationId: delete_room
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/room'
+        '400': 
+          $ref: '#/components/responses/invalid'
+
+# END: room
+
+
+# START: building
+          
+  /{projectid}/{plantid}/{stage}/building:
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+
+    # path-part: building
+    post:
+      tags:
+        - Building # tag
+      summary: Add a new building
+      operationId: add_building
+
+      responses:
+        '200':
+          $ref: '#/components/responses/building'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/building'
+
+    # path-part: building
+    put:
+      tags:
+        - Building # tag
+      summary: Update an existing building
+      operationId: update_building
+      responses:
+        '200':
+          $ref: '#/components/responses/building'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/building'
+
+    # path-part: building
+    get:
+      tags:
+        - Building # tag
+      summary: List buildings
+      operationId: list_building
+      parameters:
+        - $ref: '#/components/parameters/filter'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/buildinglist'
+        '400': 
+          $ref: '#/components/responses/invalid'
+          
+  '/{projectid}/{plantid}/{stage}/building/{entityid}':
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+        
+    # path-part: building      
+    get:
+      tags:
+        - Building # tag
+      summary: Find building by ID
+      description: Returns a single Building
+      operationId: get_building_by_id
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/building'
+        '400': 
+          $ref: '#/components/responses/invalid'
+           
+    # path-part: building         
+    delete:
+      tags:
+        - Building # tag
+      summary: Delete building
+      operationId: delete_building
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/building'
+        '400': 
+          $ref: '#/components/responses/invalid'
+
+# END: building
+
+
+
+# START: extent
+          
+  /{projectid}/{plantid}/{stage}/extent:
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+
+    # path-part: extent
+    post:
+      tags:
+        - Extent # tag
+      summary: Add a new extent
+      operationId: add_extent
+
+      responses:
+        '200':
+          $ref: '#/components/responses/extent'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/extent'
+
+    # path-part: extent
+    put:
+      tags:
+        - Extent # tag
+      summary: Update an existing extent
+      operationId: update_extent
+      responses:
+        '200':
+          $ref: '#/components/responses/extent'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/extent'
+
+    # path-part: extent
+    get:
+      tags:
+        - Extent # tag
+      summary: List extents
+      operationId: list_extent
+      parameters:
+        - $ref: '#/components/parameters/filter'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/extentlist'
+        '400': 
+          $ref: '#/components/responses/invalid'
+          
+  '/{projectid}/{plantid}/{stage}/extent/{entityid}':
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+        
+    # path-part: extent      
+    get:
+      tags:
+        - Extent # tag
+      summary: Find extent by ID
+      description: Returns a single Extent
+      operationId: get_extent_by_id
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/extent'
+        '400': 
+          $ref: '#/components/responses/invalid'
+           
+    # path-part: extent         
+    delete:
+      tags:
+        - Extent # tag
+      summary: Delete extent
+      operationId: delete_extent
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/extent'
+        '400': 
+          $ref: '#/components/responses/invalid'
+
+# END: extent
+
+
+
+# START: surface
+          
+  /{projectid}/{plantid}/{stage}/surface:
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+
+    # path-part: surface
+    post:
+      tags:
+        - Surface # tag
+      summary: Add a new surface
+      operationId: add_surface
+
+      responses:
+        '200':
+          $ref: '#/components/responses/surface'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/surface'
+
+    # path-part: surface
+    put:
+      tags:
+        - Surface # tag
+      summary: Update an existing surface
+      operationId: update_surface
+      responses:
+        '200':
+          $ref: '#/components/responses/surface'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/surface'
+
+    # path-part: surface
+    get:
+      tags:
+        - Surface # tag
+      summary: List surfaces
+      operationId: list_surface
+      parameters:
+        - $ref: '#/components/parameters/filter'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/surfacelist'
+        '400': 
+          $ref: '#/components/responses/invalid'
+          
+  '/{projectid}/{plantid}/{stage}/surface/{entityid}':
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+        
+    # path-part: surface      
+    get:
+      tags:
+        - Surface # tag
+      summary: Find surface by ID
+      description: Returns a single Surface
+      operationId: get_surface_by_id
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/surface'
+        '400': 
+          $ref: '#/components/responses/invalid'
+           
+    # path-part: surface         
+    delete:
+      tags:
+        - Surface # tag
+      summary: Delete surface
+      operationId: delete_surface
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/surface'
+        '400': 
+          $ref: '#/components/responses/invalid'
+
+# END: surface
+
+
+# START: map
+          
+  /{projectid}/{plantid}/{stage}/map:
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+
+    # path-part: map
+    post:
+      tags:
+        - Map # tag
+      summary: Add a new map
+      operationId: add_map
+
+      responses:
+        '200':
+          $ref: '#/components/responses/map'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/map'
+
+    # path-part: map
+    put:
+      tags:
+        - Map # tag
+      summary: Update an existing map
+      operationId: update_map
+      responses:
+        '200':
+          $ref: '#/components/responses/map'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/map'
+
+    # path-part: map
+    get:
+      tags:
+        - Map # tag
+      summary: List maps
+      operationId: list_map
+      parameters:
+        - $ref: '#/components/parameters/filter'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/maplist'
+        '400': 
+          $ref: '#/components/responses/invalid'
+          
+  '/{projectid}/{plantid}/{stage}/map/{entityid}':
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+        
+    # path-part: map      
+    get:
+      tags:
+        - Map # tag
+      summary: Find map by ID
+      description: Returns a single Map
+      operationId: get_map_by_id
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/map'
+        '400': 
+          $ref: '#/components/responses/invalid'
+           
+    # path-part: map         
+    delete:
+      tags:
+        - Map # tag
+      summary: Delete map
+      operationId: delete_map
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/map'
+        '400': 
+          $ref: '#/components/responses/invalid'
+
+# END: map
+
+
+# START: geofence
+          
+  /{projectid}/{plantid}/{stage}/geofence:
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+
+    # path-part: geofence
+    post:
+      tags:
+        - Geofence # tag
+      summary: Add a new geofence
+      operationId: add_geofence
+
+      responses:
+        '200':
+          $ref: '#/components/responses/geofence'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/geofence'
+
+    # path-part: geofence
+    put:
+      tags:
+        - Geofence # tag
+      summary: Update an existing geofence
+      operationId: update_geofence
+      responses:
+        '200':
+          $ref: '#/components/responses/geofence'
+        '400': 
+          $ref: '#/components/responses/invalid'
+      requestBody:
+        $ref: '#/components/requestBodies/geofence'
+
+    # path-part: geofence
+    get:
+      tags:
+        - Geofence # tag
+      summary: List geofences
+      operationId: list_geofence
+      parameters:
+        - $ref: '#/components/parameters/filter'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/geofencelist'
+        '400': 
+          $ref: '#/components/responses/invalid'
+          
+  '/{projectid}/{plantid}/{stage}/geofence/{entityid}':
+    parameters:
+      - $ref: '#/components/parameters/projectid'
+      - $ref: '#/components/parameters/plantid'
+      - $ref: '#/components/parameters/stage'
+        
+    # path-part: geofence      
+    get:
+      tags:
+        - Geofence # tag
+      summary: Find geofence by ID
+      description: Returns a single geofence
+      operationId: getgeofence_by_id
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/geofence'
+        '400': 
+          $ref: '#/components/responses/invalid'
+           
+    # path-part: geofence         
+    delete:
+      tags:
+        - Geofence # tag
+      summary: Delete geofence
+      operationId: delete_geofence
+      parameters:
+        - $ref: '#/components/parameters/entityid'
+      responses:
+        '200':
+          $ref: '#/components/responses/geofence'
+        '400': 
+          $ref: '#/components/responses/invalid'
+
+# END: geofence
+
+          
+components:
+
+  securitySchemes:
+    api_key:
+      type: http
+      scheme: bearer
+
+      
+  parameters:
+    
+    projectid:
+      name: projectid
+      in: path
+      description: project identifier
+      required: true
+      schema:
+        type: string
+        
+    plantid:
+      name: plantid
+      in: path
+      description: plant identifier
+      required: true
+      schema:
+        type: string
+        
+    stage:
+      name: stage
+      in: path
+      description: stage name
+      required: true
+      schema:
+        type: string
+        
+    entityid:
+      name: entityid
+      in: path
+      description: ID of entity
+      required: true
+      schema:
+        type: string
+        
+    filter:
+      name: filter
+      in: query
+      required: false
+      schema:
+        type: string
+        
+    page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: string
+
+        
+              
+  schemas:
+    Entity:
+      type: object
+      description: Base schema for all REST entities
+      required:
+       - id
+       - name
+       - desc
+       - custom
+      properties:
+        id:
+          type: string
+          description: The identifier of the entity - an opaque string
+        name:
+          type: string
+          description: The name of the Entity; context specific
+        desc:
+          type: string
+          description: The description of the entity, if any
+        custom:
+          type: object
+          description: A container object for custom data fields
+
+    Point:
+      type: object
+      description: Base schema for Entities that have a point in space
+      required:
+       - xval
+       - yval
+       - zval
+      properties:
+        xval:
+          type: number
+          description: The x coordinate value
+        yval:
+          type: number
+          description: The y coordinate value
+        zval:
+          type: number
+          description: The z coordinate value
+        unit:
+          type: string
+          description: The unit identifier code (e.g. `px`, `m`)
+         
+    Rectangle:
+      type: object
+      required:
+       - xlen
+       - ylen
+       - zero
+       - unit
+      properties:
+        xlen:
+          type: number
+          description: length in the x coordinate dimension
+        ylen:
+          type: number
+          description: length in the y coordinate dimension
+        zero:
+          type: string
+          description: Corner defining the origin (x=0,y=0), encoded as
+            TL - Top Left;
+            BL - Bottom Left;
+            TR - Top Right;
+            BR - Bottom Right;
+        unit:
+          type: string
+          description: The unit identifier code (e.g. `px`, `m`)
+
+         
+    Polygon:
+      type: object
+      description: Base schema for Entities that have a polygon on a 2D Surface
+      required:
+       - polygon
+      properties:
+        polygon:
+          type: object
+          properties:
+            points:
+              type: array
+              items:
+                type: array
+                items:
+                  type: number
+                  description: Tuples of [x,y] coordinates
+
+    Asset:
+      type: object
+      description: A tracked asset within the plant
+      allOf: 
+        - $ref: '#/components/schemas/Entity'
+        - $ref: '#/components/schemas/Point'
+        - required:
+            - tag
+            - room_id
+          properties:
+            tag:
+              type: string
+              description: Building management tag
+            room_id:
+              type: string
+              description: The room that contains this asset. If a location Point is not specified, the centroid of the Room polygon is used
+              
+    Room:
+      type: object
+      description: A Room within the plant
+      allOf: 
+        - $ref: '#/components/schemas/Entity'
+        - $ref: '#/components/schemas/Polygon'
+        - required:
+            - surface_id
+            - building_id
+            - level
+          properties:
+            surface_id:
+              type: string
+              description: The floor of the Room rests on this Surface
+            building_id:
+              type: string
+              description: The Building that contains this Room
+            level:
+              type: string
+              description: The Building level of this Room.
+
+    Building:
+      type: object
+      description: A Building within the plant
+      allOf: 
+        - $ref: '#/components/schemas/Entity'
+        - required:
+            - extent_id
+          properties:
+            extent_id:
+              type: string
+              description: The Extent containing this Building
+
+    Geofence:
+      type: object
+      description: A Geofence within the plant
+      allOf: 
+        - $ref: '#/components/schemas/Entity'
+        - required:
+            - extent_id
+          properties:
+            extent_id:
+              type: string
+              description: The Extent containing this Geofence
+
+    Extent:
+      type: object
+      description: A 3D cuboid volume enclosing a subset of the plant space
+      allOf: 
+        - $ref: '#/components/schemas/Entity'
+        - $ref: '#/components/schemas/Rectangle'
+        - required:
+            - has_parent
+          properties:
+            primary:
+              type: boolean
+              description: If true, the primary Extent of the plant, defining the fundamental coordinates of all Entities
+            has_parent:
+              type: boolean
+              description: If true, a child Extent within the primary Extent
+            parent_id:
+              type: string
+              description: The id of the parent Extent
+            parent_xyangle:
+              type: number # radians
+              description: The rotation with respect to the parent Extent, relative to the zero axis orientation of the parent
+            parent_xval:
+              type: number
+              description: The x position the zero in the parent coordinate system
+            parent_yval:
+              type: number
+              description: The y position the zero in the parent coordinate system
+            parent_zval:
+              type: number
+              description: The z position the zero in the parent coordinate system
+            parent_xlen:
+              type: number
+              description: The length of the Rectangle in the x coordinate of the parent
+            parent_ylen:
+              type: number
+              description: The length of the Rectangle in the y coordinate of the parent
+
+    Surface:
+      type: object
+      description: A 2D rectangular area intersecting an Extent parallel to the x-y plane, at a specific z value.
+      allOf: 
+        - $ref: '#/components/schemas/Entity'
+        - $ref: '#/components/schemas/Rectangle'
+        - required:
+            - extent_id
+            - zval
+          properties:
+            extent_id:
+              type: string
+              description: The Extent that contains this Surface
+            zval:
+              type: number
+              description: The z coordinate of this Surface in the coordinate systemn of the Extent
+              
+    Map:
+      type: object
+      description: The set of mapping tile images that represent the map of a Surface.
+      allOf: 
+        - $ref: '#/components/schemas/Entity'
+        - $ref: '#/components/schemas/Point'
+        - $ref: '#/components/schemas/Rectangle'
+        - required:
+            - surface_id
+            - tileset
+          properties:
+            surface_id:
+              type: string
+              description: The Surface that contains this Map
+            tileset:
+              type: string
+              description: The tileset that defines the images for this Map
+              
+              
+  requestBodies:
+    entity:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Entity'
+      required: true
+          
+    asset:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Asset'
+      required: true
+
+    room:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Room'
+      required: true
+
+    building:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Building'
+      required: true
+
+    geofence:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Geofence'
+      required: true
+
+    extent:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Extent'
+      required: true
+
+    surface:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Surface'
+      required: true
+
+    map:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Map'
+      required: true
+
+
+
+  responses:
+    
+    notfound:
+      description: Not found
+      
+    invalid:
+      description: Invalid
+      
+    entity:
+      description: Entity
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Entity'
+            
+    entitylist:
+      description: Entity List
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name: 
+                type: string # entity name, e.g. "asset"
+              list:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entity'
+
+    asset:
+      description: Asset
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Asset'
+            
+    assetlist:
+      description: Asset List
+      content:
+        application/json:
+          schema: 
+            type: object
+            properties:
+              name:
+                type: string
+                enum: ["asset"]
+              list:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entity'
+
+    room:
+      description: Room
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Room'
+            
+    roomlist:
+      description: Room List
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                enum: ["room"]
+              list:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entity'
+
+
+    building:
+      description: Building
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Building'
+            
+    buildinglist:
+      description: Building List
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                enum: ["building"]
+              list:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entity'
+
+    geofence:
+      description: Geofence
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Geofence'
+            
+    geofencelist:
+      description: Geofence List
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                enum: ["geofence"]
+              list:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entity'
+              
+    extent:
+      description: Extent
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Extent'
+            
+    extentlist:
+      description: Extent List
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                enum: ["extent"]
+              list:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entity'
+
+
+    surface:
+      description: Surface
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Surface'
+            
+    surfacelist:
+      description: Surface List
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                enum: ["surface"]
+              list:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entity'
+
+
+    map:
+      description: Map
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Map'
+            
+    maplist:
+      description: Map List
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                enum: ["map"]
+              list:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entity'
+                  

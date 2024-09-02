@@ -1,0 +1,24 @@
+title: Python
+
+extension: py
+
+
+options: &: {
+  name: .$KEY
+  publish: *true | boolean
+}
+
+
+options: {
+
+  endpoint: {
+    kind: String
+    short: "PlantQuest API URL"
+  }
+
+  apikey: {
+    kind: String
+    short: "PlantQuest API Key"
+  }
+
+}

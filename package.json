@@ -1,0 +1,28 @@
+{
+  "name": "build-plantquest-sdk",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "model": "voxgig-model model/sdk.jsonic",
+    "watch": "tsc --build src -w",
+    "build": "tsc --build src",
+    "clean": "rm -rf node_modules yarn.lock package-lock.json",
+    "mock-server": "prism mock def/assetmap-1.4.0.yml"
+  },
+  "author": "",
+  "license": "MIT",
+  "overrides": {
+    "@stoplight/prism-cli": {
+      "@stoplight/json": "3.21.0"
+    }
+  },
+  "devDependencies": {
+    "@voxgig/model": "^3.2.0",
+    "@voxgig/sdkgen": "^0.3.0",
+    "@voxgig/util": "^0.0.3",
+    "@types/node": "22.5.2",
+    "@stoplight/prism-cli": "^5.9.0",
+    "typescript": "^5.5.4"
+  }
+}

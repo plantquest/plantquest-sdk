@@ -1,0 +1,22 @@
+
+title: Go
+
+options: &: {
+  name: .$KEY
+  publish: *true | boolean
+}
+
+
+options: {
+
+  Endpoint: {
+    kind: String
+    short: "PlantQuest API URL"
+  }
+
+  Apikey: {
+    kind: String
+    short: "PlantQuest API Key"
+  }
+  
+}

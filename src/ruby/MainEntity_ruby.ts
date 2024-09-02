@@ -1,0 +1,16 @@
+import { cmp, each, File, Code } from "jostraca";
+
+const MainEntity = cmp(async function MainEntity(props: any) {
+  const { entity } = props;
+
+  const def = JSON.stringify(entity);
+
+  Code(`
+  def ${entity.Name}
+    ${entity.Name}.new(self, ${def})
+  end
+
+`);
+});
+
+export { MainEntity };

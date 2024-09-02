@@ -1,0 +1,16 @@
+{
+  "sys": {
+    "model": {
+      "builders": {
+        "sdk": {
+          "load": "build/sdk.js"
+        }
+      },
+      "watch": {
+        "build": {},
+        "dist": {},
+        "tm": {}
+      }
+    }
+  }
+}
